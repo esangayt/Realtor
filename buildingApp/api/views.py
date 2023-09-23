@@ -13,11 +13,17 @@ from rest_framework.pagination import PageNumberPagination
 
 class BusinessViewSet(GeneralModelViewSet):
     serializer_class = SerializerBusiness
+    # pagination_class = PageNumberPagination
 
     def list(self, request, *args, **kwargs):
-        business_serializer = self.get_serializer(self.get_queryset(), many=True)
-        print(type(self.paginate_queryset(self.get_queryset())))
-        return Response(business_serializer.data)
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         try:
