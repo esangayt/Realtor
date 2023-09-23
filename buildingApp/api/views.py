@@ -1,5 +1,7 @@
 import datetime
 
+from django.http import Http404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -13,25 +15,27 @@ from rest_framework.pagination import PageNumberPagination
 
 class BusinessViewSet(GeneralModelViewSet):
     serializer_class = SerializerBusiness
-    # pagination_class = PageNumberPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return CustomResponse.collection(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         try:
-            business = Business.objects.get(id=kwargs.get('pk'), is_active=True)
+            business = self.get_object()
             business_serializer = self.get_serializer(business)
 
             return CustomResponse.item(business_serializer.data)
-        except Business.DoesNotExist:
+        except Http404:
             return CustomResponse.item()
 
     def update(self, request, *args, **kwargs):
@@ -49,12 +53,11 @@ class BusinessViewSet(GeneralModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         try:
-            business = Business.objects.get(id=kwargs.get('pk'), is_active=True)
-            business.is_active = False
-            # business.deleted_at = datetime.datetime.now()
-            business.save()
-            return CustomResponse.destroyed(content="Deleted", message="Deleted")
-        except Business.DoesNotExist:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+
+            return CustomResponse.destroyed(content="Deleted", message="Delete")
+        except Http404:
             return CustomResponse.item()
 
     def create(self, request, *args, **kwargs):
@@ -62,5 +65,6 @@ class BusinessViewSet(GeneralModelViewSet):
 
         if serializer.is_valid():
             self.perform_create(serializer)
-            return CustomResponse.stored(serializer.data)
+            headers = self.get_success_headers(serializer.data)
+            return CustomResponse.stored(serializer.data, headers=headers)
         return CustomResponse(serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)
