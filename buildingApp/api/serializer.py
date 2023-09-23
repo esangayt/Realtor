@@ -8,6 +8,9 @@ from rest_framework.validators import UniqueValidator
 
 
 class SerializerBusiness(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100,
+                                 validators=[UniqueValidator(queryset=Business.objects.all())])
+
     class Meta:
         model = Business
         exclude = GLOBAL_FIELDS_EXCLUDED

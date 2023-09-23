@@ -4,6 +4,15 @@ from base.models import BaseModel
 from django.db import models
 
 
+def unique_value(value):
+    business = Business.objects.filter(name=value)
+
+    if business.exists():
+        raise ValidationError("Name invalid")
+
+    return value
+
+
 class Business(BaseModel):
     name = models.CharField(max_length=100)
     page = models.URLField(max_length=150)
@@ -11,5 +20,6 @@ class Business(BaseModel):
     class Meta:
         verbose_name = 'Name of Business'
         verbose_name_plural = 'Names of Business'
+
     def __str__(self):
         return self.name
