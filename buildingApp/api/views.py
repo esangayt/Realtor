@@ -1,16 +1,17 @@
 import datetime
 
+from django.contrib.auth.models import User
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
-
 from base.CustomResponse import CustomResponse
-from base.api import GeneralModelViewSet
-from buildingApp.api.serializer import SerializerBusiness
-from buildingApp.models import Business
-from rest_framework.pagination import PageNumberPagination
+from base.api import (
+    GeneralModelViewSet
+)
+from buildingApp.api.serializer import (
+    SerializerBusiness, SerializerBuilding, SerializerComment
+)
+from buildingApp.models import Business, Building
 
 
 class BusinessViewSet(GeneralModelViewSet):
@@ -28,15 +29,6 @@ class BusinessViewSet(GeneralModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return CustomResponse.collection(serializer.data)
-
-    def retrieve(self, request, *args, **kwargs):
-        try:
-            business = self.get_object()
-            business_serializer = self.get_serializer(business)
-
-            return CustomResponse.item(business_serializer.data)
-        except Http404:
-            return CustomResponse.item()
 
     def update(self, request, *args, **kwargs):
         try:
@@ -68,3 +60,11 @@ class BusinessViewSet(GeneralModelViewSet):
             headers = self.get_success_headers(serializer.data)
             return CustomResponse.stored(serializer.data, headers=headers)
         return CustomResponse(serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)
+
+
+class BuildingViewSet(GeneralModelViewSet):
+    serializer_class = SerializerBuilding
+
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)

@@ -1,8 +1,10 @@
 from rest_framework import routers
-from .views import BusinessViewSet
+from .views import (
+    BusinessViewSet, BuildingViewSet
+)
+from django.urls import path, include
 
 router = routers.DefaultRouter()
 
 router.register(r'business', BusinessViewSet, basename="business")
-
-urlpatterns = router.urls
+router.register(r'buildings', BuildingViewSet, basename="building")
