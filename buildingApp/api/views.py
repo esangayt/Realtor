@@ -1,17 +1,19 @@
 import datetime
-
 from django.contrib.auth.models import User
 from django.http import Http404
-from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import status
 from base.CustomResponse import CustomResponse
+from buildingApp.models import Business, Building
 from base.api import (
-    GeneralModelViewSet
+    GeneralModelViewSet, GeneralRPDViewSet, GeneralListAPIView,
+    GeneralReadOnlyModelViewSet, GeneralCreateViewSet
 )
 from buildingApp.api.serializer import (
     SerializerBusiness, SerializerBuilding, SerializerComment
 )
-from buildingApp.models import Business, Building
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class BusinessViewSet(GeneralModelViewSet):
@@ -68,3 +70,29 @@ class BuildingViewSet(GeneralModelViewSet):
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
+
+
+class CommentListViewSet(GeneralReadOnlyModelViewSet):
+    serializer_class = SerializerComment
+
+
+class CommentRUPAPIView(GeneralRPDViewSet):
+    serializer_class = SerializerComment
+
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
+
+
+class CommentCreateAPIView(GeneralCreateViewSet):
+    serializer_class = SerializerComment
+
+    def perform_create(self, serializer):
+        pk = self.kwargs.get('pk')
+        building = Building.objects.get(id=pk)
+        user = User.objects.get(id=1)
+        serializer.save(building=building, user_comment=user)
+
+
+class CommentsBuildingListAPIView(GeneralListAPIView):
+    serializer_class = SerializerComment
