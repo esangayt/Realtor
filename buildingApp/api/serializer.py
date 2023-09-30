@@ -17,7 +17,7 @@ class SerializerBuilding(serializers.ModelSerializer):
 class SerializerBusiness(serializers.ModelSerializer):
     name = serializers.CharField(max_length=100,
                                  validators=[UniqueValidator(queryset=Business.objects.all())])
-    buildingList = serializers.StringRelatedField(many=True)
+    buildingList = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Business
@@ -30,3 +30,14 @@ class SerializerComment(serializers.ModelSerializer):
     class Meta:
         model = Comment
         exclude = GLOBAL_FIELDS_EXCLUDED + ['building', 'user_comment']
+
+    def validate(self, data):
+        building = self.context['view'].get_building()
+        user = self.context['request'].user
+
+        existing_comments = Comment.objects.filter(building=building, user_comment=user)
+        if existing_comments.exists():
+            raise serializers.ValidationError(
+                {"user_comment": "You've already written a comment for this building."}
+            )
+        return data

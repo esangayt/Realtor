@@ -95,6 +95,13 @@ class CommentRUPAPIView(GeneralRPDViewSet):
 class CommentCreateAPIView(GeneralCreateViewSet):
     serializer_class = SerializerComment
 
+    def get_building(self):
+        try:
+            building_id = self.kwargs.get('pk')
+            return Building.objects.get(id=building_id)
+        except ObjectDoesNotExist :
+            raise ValidationError({"Building": "Doesn't exists"})
+
     def perform_create(self, serializer):
         building = Building.objects.get(id=self.kwargs.get('pk'))
         user = self.request.user
