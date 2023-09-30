@@ -1,8 +1,13 @@
 import datetime
 from django.contrib.auth.models import User
 from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
+from base.CustomPermissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+
 from base.CustomResponse import CustomResponse
 from buildingApp.models import Business, Building
 from base.api import (
@@ -20,6 +25,7 @@ class BusinessViewSet(GeneralModelViewSet):
     serializer_class = SerializerBusiness
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['name']
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -66,6 +72,7 @@ class BusinessViewSet(GeneralModelViewSet):
 
 class BuildingViewSet(GeneralModelViewSet):
     serializer_class = SerializerBuilding
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True
@@ -78,6 +85,7 @@ class CommentListViewSet(GeneralReadOnlyModelViewSet):
 
 class CommentRUPAPIView(GeneralRPDViewSet):
     serializer_class = SerializerComment
+    permission_classes = [IsOwnerOrReadOnly]
 
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True
@@ -88,9 +96,9 @@ class CommentCreateAPIView(GeneralCreateViewSet):
     serializer_class = SerializerComment
 
     def perform_create(self, serializer):
-        pk = self.kwargs.get('pk')
-        building = Building.objects.get(id=pk)
-        user = User.objects.get(id=1)
+        building = Building.objects.get(id=self.kwargs.get('pk'))
+        user = self.request.user
+
         serializer.save(building=building, user_comment=user)
 
 
