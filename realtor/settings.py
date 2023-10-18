@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-1gc0+g6w9&#%0oa26f5dsiojllu^y=@r0-ph4!4$66w#2!%b)a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -40,12 +40,15 @@ BASE_APPS = [
 ]
 
 LOCAL_APPS = [
-    'buildingApp'
+    'buildingApp',
+    'userApp'
 ]
 
 THIRD_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -80,6 +83,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'realtor.wsgi.application'
+AUTH_USER_MODEL = 'userApp.Account'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -139,7 +143,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ROTATE_REFRESH_TOKENS": True,
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True
 }
