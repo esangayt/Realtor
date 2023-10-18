@@ -1,9 +1,9 @@
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework.exceptions import ValidationError
-
 from base.models import BaseModel
 from django.db import models
+from userApp.models import Account
 
 
 def unique_value(value):
@@ -16,7 +16,7 @@ def unique_value(value):
 
 
 class Business(BaseModel):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, validators=[unique_value])
     page = models.URLField(max_length=150)
 
     class Meta:
@@ -28,7 +28,7 @@ class Business(BaseModel):
 
 
 class Building(BaseModel):
-    address = models.CharField(max_length=80)
+    address = models.CharField(max_length=80, validators=[unique_value])
     country = models.CharField(max_length=70)
     description = models.CharField(max_length=250)
     imageUri = models.URLField(max_length=250)
@@ -46,7 +46,7 @@ class Comment(BaseModel):
     qualifying = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     description = models.CharField(max_length=200, null=True)
     building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name="buildingList")
-    user_comment = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_comment = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Comment"
